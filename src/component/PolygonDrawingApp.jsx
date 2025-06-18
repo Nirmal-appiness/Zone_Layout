@@ -60,9 +60,7 @@ const PolygonDrawingApp = () => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageData, setImageData] = useState({ width: 0, height: 0, displayWidth: 0, displayHeight: 0 });
   const [containerSize, setContainerSize] = useState({ width: 800, height: 600 });
-
-  // Add this state to manage the 4 sections for each polygon
-const [polygonSections, setPolygonSections] = useState({});
+  const [polygonSections, setPolygonSections] = useState({});
 
 
 
@@ -132,11 +130,9 @@ const updatePolygonSection = (polygonIndex, sectionKey, field, value) => {
     let displayWidth, displayHeight;
     
     if (imageAspect > containerAspect) {
-      // Image is wider - fit to width
       displayWidth = containerSize.width;
       displayHeight = displayWidth / imageAspect;
     } else {
-      // Image is taller - fit to height
       displayHeight = containerSize.height;
       displayWidth = displayHeight * imageAspect;
     }
@@ -168,7 +164,7 @@ const updatePolygonSection = (polygonIndex, sectionKey, field, value) => {
 
   const getCurrentTypeColor = (polygonType) => {
     const typeName = ROI_TYPES[polygonType];
-    return typeColors[typeName] || '#007bff'; // fallback color
+    return typeColors[typeName] || '#007bff';
   };
 
   const drawCanvas = useCallback(() => {
@@ -380,7 +376,7 @@ const updatePolygonSection = (polygonIndex, sectionKey, field, value) => {
     const timeout = setTimeout(() => {
       processSingleClick(event);
       setClickTimeout(null);
-    }, 200); // 250ms delay to detect double-click
+    }, 200);
     
     setClickTimeout(timeout);
   };
@@ -402,12 +398,12 @@ const updatePolygonSection = (polygonIndex, sectionKey, field, value) => {
     const point = { x: Math.round(coords.x), y: Math.round(coords.y) };
     
     if (!isDrawing) {
-      // Start new polygon
+      
       setCurrentPolygon([point]);
       setIsDrawing(true);
       setSelectedPolygon(null);
     } else {
-      // Add point to current polygon
+     
       const newPolygon = [...currentPolygon, point];
       setCurrentPolygon(newPolygon);
       
@@ -434,7 +430,7 @@ const updatePolygonSection = (polygonIndex, sectionKey, field, value) => {
     if (polygonPoints.length >= 3) {
       setPendingPolygon(polygonPoints);
       setShowTypeModal(true);
-      setSelectedTypeForModal(0); // default type
+      setSelectedTypeForModal(0); 
     }
     setIsDrawing(false);
   };
@@ -506,7 +502,6 @@ const updatePolygonSection = (polygonIndex, sectionKey, field, value) => {
         setPolygons(updatedPolygons);
       }
     } else if (!isDrawing) {
-      // Handle cursor changes when hovering over points
       const pointHit = getPointAtPosition(event);
       const canvas = canvasRef.current;
       if (canvas) {
@@ -545,8 +540,6 @@ const updatePolygonSection = (polygonIndex, sectionKey, field, value) => {
     const newOffsetY = mouseY - containerSize.height / 2 - worldBeforeZoomY * newZoom;
     
     const newOffset = { x: newOffsetX, y: newOffsetY };
-    
-    // Constrain the new offset
     const constrainedOffset = constrainOffset(newOffset, newZoom);
     
     setZoom(newZoom);
@@ -590,27 +583,25 @@ const updatePolygonSection = (polygonIndex, sectionKey, field, value) => {
     setCurrentPolygon([])
   };
 
-  // Generate available polygon IDs for dropdown
   const getAvailablePolygonIds = () => {
     const numberOfPolygons = polygons.length;
     return Array.from({ length: numberOfPolygons }, (_, i) => `P${i + 1}`);
   };
 
-// EXPORT DATA - Key Changes
+// ----------- EXPORT DATA ----------------------
 const exportData = () => {
   const exportPolygons = polygons.map((polygon, index) => {
     const sections = polygonSections[index] || {};
     const exportEntry = {
       id: polygon.mappedId,
       type: ROI_TYPES[polygon.type || 0],
-      sub_type: polygon.subtype || "",  // Changed from subtype to sub_type
+      sub_type: polygon.subtype || "",  
       points: polygon.coordinates.map(coord => ({
         x: Math.round(coord.x * 100) / 100,
         y: Math.round(coord.y * 100) / 100
       }))
     };
 
-    // Create associate polygons array instead of individual properties
     const associatePolygons = [];
     Object.entries(sections).forEach(([sectionKey, section]) => {
       if (section?.id && section.id !== polygon.mappedId) {
@@ -624,7 +615,6 @@ const exportData = () => {
       }
     });
 
-    // Only add associate polygons if there are any
     if (associatePolygons.length > 0) {
       exportEntry["associate polygons"] = associatePolygons;
     }
@@ -648,7 +638,7 @@ const exportData = () => {
   URL.revokeObjectURL(url);
 };
 
-// IMPORT DATA - Key Changes
+//---------------- IMPORT DATA ---------------
 const importData = (event) => {
   const file = event.target.files[0];
   if (file) {
@@ -669,7 +659,6 @@ const importData = (event) => {
 
           setPolygons(importedPolygons);
 
-          // Import sections from associate polygons array
           const importedSections = {};
           const associateCounts = {};
 
@@ -677,11 +666,10 @@ const importData = (event) => {
             const sections = {};
             let count = 0;
 
-            // Process associate polygons array instead of individual properties
             if (polygon["associate polygons"] && Array.isArray(polygon["associate polygons"])) {
               polygon["associate polygons"].forEach((associate, i) => {
                 if (associate["polygon Id"] && associate["polygon_type"]) {
-                  // Validate that the associated polygon exists and is different
+                  
                   const associatedPolygon = importedPolygons.find(p => p.mappedId === associate["polygon Id"]);
                   
                   if (associatedPolygon && associate["polygon Id"] !== polygon.id) {
@@ -751,7 +739,7 @@ const importData = (event) => {
     }
   }, [imageLoaded, containerSize, calculateImageDisplay]);
 
-  // Update container size when canvas ref changes
+
   useEffect(() => {
     if (containerRef.current) {
       const updateSize = () => {
@@ -765,7 +753,6 @@ const importData = (event) => {
     }
   }, []);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (clickTimeout) {
@@ -819,7 +806,7 @@ const importData = (event) => {
 
   return (
     <div style={Styles.container}>
-      {/* Left side - Canvas */}
+      {/* ---- Canvas ------ */}
       <div style={Styles.leftPanel} ref={containerRef}>
    
         <div style={Styles.canvasContainer}>
@@ -951,14 +938,14 @@ const importData = (event) => {
         <div style={Styles.polygonList}>
           <div style={{ display: 'flex', justifyContent:"space-between", alignItems:"center"}}>
                 <h3 style={Styles.polygonListHeader}>Polygons ({polygons.length})</h3>
-                {/* <Info size={'18px'}/> */}
+                
           </div>
           {polygons.length === 0 ? (
               <p style={Styles.emptyState}>No polygons drawn yet</p>
               ) : (
                 <div style={{ position: 'relative' }}>
                   {polygons.map((polygon, index) => {
-                    // Initialize sections if not exists
+                   
                     if (!polygonSections[index]) {
                       initializePolygonSections(index, polygon.type || 0, polygon.mappedId);
                     }
@@ -1023,7 +1010,7 @@ const importData = (event) => {
                                 value={polygon.subtype || ''}
                                 onChange={(e) => {
                                   e.stopPropagation();
-                                  // Update polygon with new subtype
+                                 
                                   const updatedPolygons = polygons.map((p, i) => 
                                     i === index ? { ...p, subtype: e.target.value } : p
                                   );
@@ -1087,13 +1074,11 @@ const importData = (event) => {
                         </button>
                         }
 
-                        {/* Render Associate Sections */}
+                        {/* Associate Sections */}
                         {polygons.length > 1 &&
                             [...Array(associateCounts[index] || 0)].map((_, i) => {
                               const sectionKey = `section${i + 1}`;
                               const section = polygonSections[index]?.[sectionKey];
-
-                              // FIXED: Filter out the current polygon's own ID
                               const availableIds = getAvailablePolygonIds().filter(id => id !== polygon.mappedId);
                               const associatedPolygon = polygons.find(p => p.mappedId === section?.id);
                               const typeLabel = associatedPolygon ? ROI_TYPES[associatedPolygon.type] : 'Unknown';
@@ -1120,7 +1105,7 @@ const importData = (event) => {
                                     ))}
                                   </select>
 
-                                  {/* Only show type label if valid polygon is selected */}
+                                 
                                   {associatedPolygon && (
                                     <label style={{
                                       fontSize: '12px',
@@ -1229,7 +1214,7 @@ const importData = (event) => {
         </div>
       </div>
 
-  {/* ------------   MOdal ----------- */}
+  {/* ------------   MODALS ----------- */}
       {showTypeModal && (
         <TypeModal
           visible={showTypeModal}
